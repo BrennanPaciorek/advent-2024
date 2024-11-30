@@ -1,1 +1,3 @@
-.session_cookie
+.env
+target
+Cargo.lock
