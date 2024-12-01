@@ -13,3 +13,4 @@ get-day day:
     cp tools/Justfile $CRATE_NAME/Justfile
     mkdir $CRATE_NAME/files
     touch $CRATE_NAME/files/sample.txt
+    just get-input {{day}} > $CRATE_NAME/files/input.txt
