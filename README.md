@@ -3,8 +3,12 @@ Root directory for advent of code
 
 ## Prerequisites
 ### Dependencies
-
-rust, cargo, git, just
+- Linux system
+- rust
+- cargo
+- git
+- just (via cargo)
+- xdg-desktop-portal (via package manager)
 
 ### dotenv variables
 
