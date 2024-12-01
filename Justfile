@@ -4,8 +4,8 @@ set dotenv-filename := ".env"
 get-input day:
     curl -b "session=$SESSION_COOKIE" https://adventofcode.com/2024/day/{{ day }}/input
 
-# Create crate for day
-get-day day:
+# Start challenge for day (int 1-25). Creates workspace and fetches input.
+start-day day:
     #!/bin/bash
     export CRATE_NAME=day-{{day}}
     cargo new --vcs none $CRATE_NAME
