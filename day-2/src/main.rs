@@ -1,6 +1,9 @@
 use std::env::args;
 use std::fs;
 
+// TODO: can make this use a base iter, so we can feed an iterator without nth element for part 2,
+// allowing us to only clone the iterator in try_is_safe
+// TODO: return only 0 or 1 like before, refactor solution code to consume the more reasonable return types
 fn is_safe(vec: &mut Vec<u64>) -> Result<u64, usize> {
     let mut peek_iter = vec.iter().enumerate().peekable();
 
