@@ -17,8 +17,16 @@ the root Justfile will read from `.env` for `SESSION_COOKIE`. `SESSION_COOKIE` s
 SESSION_COOKIE=<aoc-session-cookie>
 ```
 
-## Creating a crate for a challenge
+## Starting a challenge
 
-`just get-day <day-number>`
+`just start-day <day-number>`
 
-The year is hardcoded.
+This will:
+- Create a crate for the challenge
+- get input, place it in files/input.txt in the crate; will fail if you do not have `SESSION_COOKIE` in `.env` in project root
+- Overwrite main.rs with tools/base.rs, and add a justfile to the crate root
+- Open the challenge via xdg-open
+
+## Other notes
+
+The year for challenge links is hardcoded.
