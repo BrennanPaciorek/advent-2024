@@ -53,31 +53,29 @@ fn try_is_safe(vec: &mut Vec<u64>) -> u64 {
 fn part_one(input_data: &str) -> Result<u64, &str> {
     let mut reports: Vec<Vec<u64>> = Vec::new();
     for line in input_data.lines() {
-        let nums = line.split_whitespace()
+        let nums = line
+            .split_whitespace()
             .map(|s| s.parse::<u64>().expect("expected number"))
             .collect();
         reports.push(nums);
     }
 
-    let answer: u64 = reports.iter_mut()
-        .map(|x| is_safe(x).unwrap_or(0))
-        .sum();
+    let answer: u64 = reports.iter_mut().map(|x| is_safe(x).unwrap_or(0)).sum();
 
     return Ok(answer);
 }
 
-fn part_two(input_data: &str) -> Result<u64, &str>{
+fn part_two(input_data: &str) -> Result<u64, &str> {
     let mut reports: Vec<Vec<u64>> = Vec::new();
     for line in input_data.lines() {
-        let nums = line.split_whitespace()
+        let nums = line
+            .split_whitespace()
             .map(|s| s.parse::<u64>().expect("expected number"))
             .collect();
         reports.push(nums);
     }
 
-    let answer: u64 = reports.iter_mut()
-        .map(|x| try_is_safe(x))
-        .sum();
+    let answer: u64 = reports.iter_mut().map(|x| try_is_safe(x)).sum();
 
     return Ok(answer);
 }
@@ -92,10 +90,9 @@ fn print_result(prefix: &str, result: Result<u64, &str>) {
 fn main() {
     let argv: Vec<String> = args().collect();
 
-    let input_file_path = argv.get(1)
-        .expect("missing file name argument");
-    let input_file = fs::canonicalize(input_file_path)
-        .expect("Could not find and cannonicalize input file");
+    let input_file_path = argv.get(1).expect("missing file name argument");
+    let input_file =
+        fs::canonicalize(input_file_path).expect("Could not find and cannonicalize input file");
 
     println!("Using input file {:?}", input_file);
 

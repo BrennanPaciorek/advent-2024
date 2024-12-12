@@ -5,14 +5,12 @@ const KEY: [char; 4] = ['X', 'M', 'A', 'S'];
 
 fn get_char(grid: &Vec<&str>, x: usize, y: usize) -> Option<char> {
     match grid.get(y) {
-        Some(line) => {
-            return line.chars().nth(x)
-        },
-        None => return None
+        Some(line) => return line.chars().nth(x),
+        None => return None,
     }
 }
 
-fn has_ma(c1: Option<char>, c2: Option<char>) -> bool{
+fn has_ma(c1: Option<char>, c2: Option<char>) -> bool {
     if c1.is_some() && c2.is_some() {
         let c1: char = c1.unwrap();
         let c2: char = c2.unwrap();
@@ -30,16 +28,26 @@ fn has_two_mas(grid: &Vec<&str>, x: usize, y: usize) -> bool {
                 let x = x as i32;
                 let y = y as i32;
 
-                let slash1_1: (i32, i32) = (x+1, y+1);
-                let slash1_2: (i32, i32) = (x-1, y-1);
-                
-                let slash2_1: (i32, i32) = (x-1, y+1);
-                let slash2_2: (i32, i32) = (x+1, y-1);
+                let slash1_1: (i32, i32) = (x + 1, y + 1);
+                let slash1_2: (i32, i32) = (x - 1, y - 1);
 
-                if slash1_2.1.is_negative() || slash1_2.0.is_negative() || slash2_1.0.is_negative() || slash2_2.1.is_negative() {
+                let slash2_1: (i32, i32) = (x - 1, y + 1);
+                let slash2_2: (i32, i32) = (x + 1, y - 1);
+
+                if slash1_2.1.is_negative()
+                    || slash1_2.0.is_negative()
+                    || slash2_1.0.is_negative()
+                    || slash2_2.1.is_negative()
+                {
                     return false;
                 }
-                return has_ma(get_char(grid, slash1_1.0 as usize, slash1_1.1 as usize), get_char(grid, slash1_2.0 as usize, slash1_2.1 as usize)) && has_ma(get_char(grid, slash2_1.0 as usize, slash2_1.1 as usize), get_char(grid, slash2_2.0 as usize, slash2_2.1 as usize));
+                return has_ma(
+                    get_char(grid, slash1_1.0 as usize, slash1_1.1 as usize),
+                    get_char(grid, slash1_2.0 as usize, slash1_2.1 as usize),
+                ) && has_ma(
+                    get_char(grid, slash2_1.0 as usize, slash2_1.1 as usize),
+                    get_char(grid, slash2_2.0 as usize, slash2_2.1 as usize),
+                );
             }
         }
         None => {}
@@ -63,12 +71,13 @@ fn has_xmas(grid: &Vec<&str>, x: usize, y: usize, index: usize, direction: (i32,
                                 let x2 = x as i32 + dx;
                                 let y2 = y as i32 + dy;
                                 if x2 >= 0 && y2 >= 0 {
-                                    matches += has_xmas(grid, x2 as usize, y2 as usize, 1, (dx, dy));
+                                    matches +=
+                                        has_xmas(grid, x2 as usize, y2 as usize, 1, (dx, dy));
                                 }
                             }
                         }
                         return matches;
-                    },
+                    }
                     3 => return 1,
                     i => {
                         let x2 = x as i32 + direction.0;
@@ -84,9 +93,7 @@ fn has_xmas(grid: &Vec<&str>, x: usize, y: usize, index: usize, direction: (i32,
 }
 
 fn part_one(input_data: &str) -> Result<u64, &str> {
-    let grid: Vec<&str> = input_data
-        .lines()
-        .collect();
+    let grid: Vec<&str> = input_data.lines().collect();
     let mut answer: u64 = 0;
     for line in grid.iter().enumerate() {
         for char in (*line.1).chars().enumerate() {
@@ -96,14 +103,12 @@ fn part_one(input_data: &str) -> Result<u64, &str> {
     return Ok(answer);
 }
 
-fn part_two(input_data: &str) -> Result<u64, &str>{
-    let grid: Vec<&str> = input_data
-        .lines()
-        .collect();
+fn part_two(input_data: &str) -> Result<u64, &str> {
+    let grid: Vec<&str> = input_data.lines().collect();
     let mut answer: u64 = 0;
     for line in grid.iter().enumerate() {
         for char in (*line.1).chars().enumerate() {
-            if has_two_mas(&grid, char.0, line.0,) {
+            if has_two_mas(&grid, char.0, line.0) {
                 answer += 1;
             }
         }
@@ -121,10 +126,9 @@ fn print_result(prefix: &str, result: Result<u64, &str>) {
 fn main() {
     let argv: Vec<String> = args().collect();
 
-    let input_file_path = argv.get(1)
-        .expect("missing file name argument");
-    let input_file = fs::canonicalize(input_file_path)
-        .expect("Could not find and cannonicalize input file");
+    let input_file_path = argv.get(1).expect("missing file name argument");
+    let input_file =
+        fs::canonicalize(input_file_path).expect("Could not find and cannonicalize input file");
 
     println!("Using input file {:?}", input_file);
 

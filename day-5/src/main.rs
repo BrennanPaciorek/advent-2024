@@ -1,6 +1,6 @@
 use std::env::args;
-use std::{fs, iter};
 use std::str::FromStr;
+use std::{fs, iter};
 
 // Input format
 // X|Y
@@ -22,11 +22,11 @@ impl Rule {
         match (lower, upper) {
             (Some(l), Some(u)) => {
                 if l.0 > u.0 {
-                    return Some((l.0, u.0))
+                    return Some((l.0, u.0));
                 }
-                return None
-            },
-            _ => return None
+                return None;
+            }
+            _ => return None,
         };
     }
 }
@@ -35,13 +35,14 @@ impl FromStr for Rule {
     type Err = ();
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let mut iter = s.split("|")
+        let mut iter = s
+            .split("|")
             .map(|x| x.parse::<u64>().expect("parse int fail"));
 
         let l = iter.next().expect("Rule::from_str: lower bound not found");
         let u = iter.next().expect("Rule::from_str: upper bound not found");
 
-        return Ok(Self(l, u))
+        return Ok(Self(l, u));
     }
 }
 
@@ -60,17 +61,27 @@ fn part_one(input_data: &str) -> Result<u64, &str> {
                 if line.len() == 0 {
                     state = ParserState::ParsingUpdates;
                 } else {
-                    rules.push(Rule::from_str(line).expect("encountered an error when parsing a rule"));
+                    rules.push(
+                        Rule::from_str(line).expect("encountered an error when parsing a rule"),
+                    );
                 }
-            },
+            }
             ParserState::ParsingUpdates => {
-                let update: Update = line.split(",")
-                    .map(|n| n.parse::<u64>().expect("Parse int fail when serializing update"))
+                let update: Update = line
+                    .split(",")
+                    .map(|n| {
+                        n.parse::<u64>()
+                            .expect("Parse int fail when serializing update")
+                    })
                     .collect();
 
-                if rules.len() == rules.iter().filter(|rule| rule.update_passes(&update).is_none()).count() {
-                    answer += *update.get(update.len() / 2)
-                        .unwrap_or(&0);
+                if rules.len()
+                    == rules
+                        .iter()
+                        .filter(|rule| rule.update_passes(&update).is_none())
+                        .count()
+                {
+                    answer += *update.get(update.len() / 2).unwrap_or(&0);
                 }
             }
         };
@@ -78,7 +89,7 @@ fn part_one(input_data: &str) -> Result<u64, &str> {
     return Ok(answer);
 }
 
-fn part_two(input_data: &str) -> Result<u64, &str>{
+fn part_two(input_data: &str) -> Result<u64, &str> {
     let mut rules: Vec<Rule> = Vec::new();
     let mut answer: u64 = 0;
     let mut state = ParserState::ParsingRules;
@@ -89,12 +100,18 @@ fn part_two(input_data: &str) -> Result<u64, &str>{
                 if line.len() == 0 {
                     state = ParserState::ParsingUpdates;
                 } else {
-                    rules.push(Rule::from_str(line).expect("encountered an error when parsing a rule"));
+                    rules.push(
+                        Rule::from_str(line).expect("encountered an error when parsing a rule"),
+                    );
                 }
-            },
+            }
             ParserState::ParsingUpdates => {
-                let mut update: Update = line.split(",")
-                    .map(|n| n.parse::<u64>().expect("Parse int fail when serializing update"))
+                let mut update: Update = line
+                    .split(",")
+                    .map(|n| {
+                        n.parse::<u64>()
+                            .expect("Parse int fail when serializing update")
+                    })
                     .collect();
 
                 // Switch for determining when to terminate loop
@@ -112,8 +129,7 @@ fn part_two(input_data: &str) -> Result<u64, &str>{
                     }
                 }
                 if missed_once {
-                    answer += *update.get(update.len() / 2)
-                       .unwrap_or(&0);
+                    answer += *update.get(update.len() / 2).unwrap_or(&0);
                 }
             }
         };
@@ -131,10 +147,9 @@ fn print_result(prefix: &str, result: Result<u64, &str>) {
 fn main() {
     let argv: Vec<String> = args().collect();
 
-    let input_file_path = argv.get(1)
-        .expect("missing file name argument");
-    let input_file = fs::canonicalize(input_file_path)
-        .expect("Could not find and cannonicalize input file");
+    let input_file_path = argv.get(1).expect("missing file name argument");
+    let input_file =
+        fs::canonicalize(input_file_path).expect("Could not find and cannonicalize input file");
 
     println!("Using input file {:?}", input_file);
 

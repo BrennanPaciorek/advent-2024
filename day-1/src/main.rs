@@ -15,11 +15,13 @@ fn part_one(input_data: &str) -> Result<u64, &str> {
     for line in input_data.lines() {
         let mut split = line.split_whitespace();
 
-        let left: u64 = split.next()
+        let left: u64 = split
+            .next()
             .expect("Could not get left number string")
             .parse()
             .expect("Could not parse left number string");
-        let right: u64 = split.next()
+        let right: u64 = split
+            .next()
             .expect("Could not get right number string")
             .parse()
             .expect("Could not parse right number string");
@@ -30,21 +32,27 @@ fn part_one(input_data: &str) -> Result<u64, &str> {
         left_list.insert(left_index, left);
         right_list.insert(right_index, right);
     }
-    let answer: u64 = left_list.iter().zip(right_list.iter()).map(|(x, y)| x.abs_diff(*y)).sum();
-    return Ok(answer)
+    let answer: u64 = left_list
+        .iter()
+        .zip(right_list.iter())
+        .map(|(x, y)| x.abs_diff(*y))
+        .sum();
+    return Ok(answer);
 }
 
-fn part_two(input_data: &str) -> Result<u64, &str>{
+fn part_two(input_data: &str) -> Result<u64, &str> {
     let mut left_list = Vec::new();
     let mut right_list = Vec::new();
     for line in input_data.lines() {
         let mut split = line.split_whitespace();
 
-        let left: u64 = split.next()
+        let left: u64 = split
+            .next()
             .expect("Could not get left number string")
             .parse()
             .expect("Could not parse left number string");
-        let right: u64 = split.next()
+        let right: u64 = split
+            .next()
             .expect("Could not get right number string")
             .parse()
             .expect("Could not parse right number string");
@@ -55,11 +63,11 @@ fn part_two(input_data: &str) -> Result<u64, &str>{
         left_list.insert(left_index, left);
         right_list.insert(right_index, right);
     }
-    let mut answer: u64 = 0; 
+    let mut answer: u64 = 0;
     for item in left_list.iter() {
         answer += right_list.iter().filter(|x| **x == *item).count() as u64 * item;
     }
-    return Ok(answer)
+    return Ok(answer);
 }
 
 fn print_result(prefix: &str, result: Result<u64, &str>) {
@@ -72,10 +80,9 @@ fn print_result(prefix: &str, result: Result<u64, &str>) {
 fn main() {
     let argv: Vec<String> = args().collect();
 
-    let input_file_path = argv.get(1)
-        .expect("missing file name argument");
-    let input_file = fs::canonicalize(input_file_path)
-        .expect("Could not find and cannonicalize input file");
+    let input_file_path = argv.get(1).expect("missing file name argument");
+    let input_file =
+        fs::canonicalize(input_file_path).expect("Could not find and cannonicalize input file");
 
     println!("Using input file {:?}", input_file);
 
