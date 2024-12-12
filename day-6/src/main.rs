@@ -23,13 +23,12 @@ impl Direction {
     fn from_char(chr: &char) -> Direction {
         return match chr {
             '^' => Direction(-1, 0),
-            '>' => Direction(0,1),
+            '>' => Direction(0, 1),
             'v' => Direction(1, 0),
             '<' => Direction(0, -1),
-            x => panic!("unexpected character {}", x)
+            x => panic!("unexpected character {}", x),
         };
     }
-
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -39,7 +38,12 @@ impl BitOr for DirectionLog {
     type Output = Self;
 
     fn bitor(self, rhs: Self) -> Self::Output {
-        return Self(self.0 | rhs.0, self.1 | rhs.1, self.2 | rhs.2, self.3 | rhs.3);
+        return Self(
+            self.0 | rhs.0,
+            self.1 | rhs.1,
+            self.2 | rhs.2,
+            self.3 | rhs.3,
+        );
     }
 }
 
@@ -47,7 +51,12 @@ impl BitAnd for DirectionLog {
     type Output = Self;
 
     fn bitand(self, rhs: Self) -> Self::Output {
-        return Self(self.0 & rhs.0, self.1 & rhs.1, self.2 & rhs.2, self.3 & rhs.3);
+        return Self(
+            self.0 & rhs.0,
+            self.1 & rhs.1,
+            self.2 & rhs.2,
+            self.3 & rhs.3,
+        );
     }
 }
 
@@ -69,7 +78,7 @@ impl DirectionLog {
     fn in_log(&self, direction: &Direction) -> bool {
         let empty_direction = Self(false, false, false, false);
         let other_log = DirectionLog::from_direction(direction);
-        return *self & other_log != empty_direction
+        return *self & other_log != empty_direction;
     }
 
     fn to_char(&self) -> char {
@@ -101,7 +110,7 @@ impl Tile {
         match chr {
             '.' => Self::Empty,
             '#' => Self::Obstacle,
-            _ => Self::Guard(Direction::from_char(chr))
+            _ => Self::Guard(Direction::from_char(chr)),
         }
     }
 
@@ -111,15 +120,20 @@ impl Tile {
             Self::Obstacle => '#',
             Self::Visited(direction) => direction.to_char(),
             _ => 'X',
-        }
+        };
     }
 }
 
 type Board = Vec<Vec<Tile>>;
 
 fn produce_board(input_data: &str) -> Board {
-    return input_data.lines()
-        .map(|s| s.chars().map(|c| Tile::from_char(&c)).collect::<Vec<Tile>>())
+    return input_data
+        .lines()
+        .map(|s| {
+            s.chars()
+                .map(|c| Tile::from_char(&c))
+                .collect::<Vec<Tile>>()
+        })
         .collect();
 }
 
@@ -171,12 +185,20 @@ fn part_one(input_data: &str) -> Result<u64, &str> {
     let guard_position: (i32, i32) = guard_start(&board);
     let guard: Tile = get_tile(&board, &guard_position).expect("Guard could not be fetched");
 
-    board = run_simulation(board, false, guard, guard_position).expect_err("found infinite loop in part one board");
+    board = run_simulation(board, false, guard, guard_position)
+        .expect_err("found infinite loop in part one board");
 
-    return Ok(board.iter().map(|row| row.iter().filter(|x| match *x {
-        Tile::Visited(_) => true,
-        _ => false
-    }).count() as u64).sum())
+    return Ok(board
+        .iter()
+        .map(|row| {
+            row.iter()
+                .filter(|x| match *x {
+                    Tile::Visited(_) => true,
+                    _ => false,
+                })
+                .count() as u64
+        })
+        .sum());
 }
 
 // Every time the guard moves, check the position clockwise to it
@@ -192,7 +214,12 @@ fn part_one(input_data: &str) -> Result<u64, &str> {
 // The check needs to accound for if an obstacle can be placed (ie if the obstacle location would
 // be on the board if placed)
 //
-fn run_simulation(mut board: Board, debug: bool, mut simulated_guard: Tile, start: (i32, i32)) -> Result<Board, Board>{
+fn run_simulation(
+    mut board: Board,
+    debug: bool,
+    mut simulated_guard: Tile,
+    start: (i32, i32),
+) -> Result<Board, Board> {
     let mut simulated_guard_position = start;
     while let Some(adjacent_tile) = get_tile(&board, &simulated_guard_position) {
         if let Tile::Guard(simulated_guard_direction) = simulated_guard {
@@ -201,61 +228,86 @@ fn run_simulation(mut board: Board, debug: bool, mut simulated_guard: Tile, star
                     if adjacent_tile_direction.in_log(&simulated_guard_direction) {
                         if debug {
                             println!("Loop found");
-                            print_board(&board, to_valid_coordinates(&simulated_guard_position).unwrap());
+                            print_board(
+                                &board,
+                                to_valid_coordinates(&simulated_guard_position).unwrap(),
+                            );
                         }
                         return Ok(board);
                     }
-    
-                    board[simulated_guard_position.0 as usize][simulated_guard_position.1 as usize] = Tile::Visited(adjacent_tile_direction.or(&simulated_guard_direction));
-                    simulated_guard_position = (simulated_guard_position.0 + simulated_guard_direction.0, simulated_guard_position.1 + simulated_guard_direction.1);
-                },
+
+                    board[simulated_guard_position.0 as usize]
+                        [simulated_guard_position.1 as usize] =
+                        Tile::Visited(adjacent_tile_direction.or(&simulated_guard_direction));
+                    simulated_guard_position = (
+                        simulated_guard_position.0 + simulated_guard_direction.0,
+                        simulated_guard_position.1 + simulated_guard_direction.1,
+                    );
+                }
                 Tile::Obstacle => {
-                    simulated_guard_position = (simulated_guard_position.0 - simulated_guard_direction.0, simulated_guard_position.1 - simulated_guard_direction.1);
+                    simulated_guard_position = (
+                        simulated_guard_position.0 - simulated_guard_direction.0,
+                        simulated_guard_position.1 - simulated_guard_direction.1,
+                    );
                     simulated_guard = Tile::Guard(simulated_guard_direction.next_direction())
                 }
                 _ => {
-                    board[simulated_guard_position.0 as usize][simulated_guard_position.1 as usize] = Tile::Visited(DirectionLog::from_direction(&simulated_guard_direction));
-                    simulated_guard_position = (simulated_guard_position.0 + simulated_guard_direction.0, simulated_guard_position.1 + simulated_guard_direction.1);
-                },
+                    board[simulated_guard_position.0 as usize]
+                        [simulated_guard_position.1 as usize] =
+                        Tile::Visited(DirectionLog::from_direction(&simulated_guard_direction));
+                    simulated_guard_position = (
+                        simulated_guard_position.0 + simulated_guard_direction.0,
+                        simulated_guard_position.1 + simulated_guard_direction.1,
+                    );
+                }
             };
         }
     }
     return Err(board);
 }
 
-fn part_two(input_data: &str, debug: bool) -> Result<u64, &str>{
+fn part_two(input_data: &str, debug: bool) -> Result<u64, &str> {
     let mut board: Board = produce_board(input_data);
     let original_guard_position: (i32, i32) = guard_start(&board);
-    let original_guard: Tile = get_tile(&board, &original_guard_position).expect("Guard could not be fetched");
+    let original_guard: Tile =
+        get_tile(&board, &original_guard_position).expect("Guard could not be fetched");
     let mut guard_position: (i32, i32) = original_guard_position.clone();
     let mut guard: Tile = original_guard.clone();
 
     let mut obstacles = HashSet::new();
     while let Some(_) = get_tile(&board, &guard_position) {
         if let Tile::Guard(mut direction) = guard {
-            let target_position: (i32, i32) = (guard_position.0 + direction.0, guard_position.1 + direction.1);
+            let target_position: (i32, i32) = (
+                guard_position.0 + direction.0,
+                guard_position.1 + direction.1,
+            );
             match get_tile(&board, &target_position) {
                 Some(tile) => {
                     let coordinates = to_valid_coordinates(&target_position).unwrap();
                     let mut simulation_board: Board = produce_board(input_data);
                     simulation_board[coordinates.0][coordinates.1] = Tile::Obstacle;
-                    match run_simulation(simulation_board, debug, original_guard.clone(), original_guard_position.clone()) {
+                    match run_simulation(
+                        simulation_board,
+                        debug,
+                        original_guard.clone(),
+                        original_guard_position.clone(),
+                    ) {
                         Ok(_) => {
                             obstacles.insert(coordinates);
                         }
-                        Err(_) => {},
+                        Err(_) => {}
                     };
 
                     match tile {
                         Tile::Obstacle => {
                             direction.change_direction();
                             guard = Tile::Guard(direction);
-                        },
+                        }
                         _ => {
                             guard_position = target_position;
                         }
                     };
-                },
+                }
                 None => guard_position = target_position,
             };
         }
@@ -277,10 +329,9 @@ fn main() {
         .find(|(var, value)| var == "DEBUG" && value == "1")
         .is_some();
 
-    let input_file_path = argv.get(1)
-        .expect("missing file name argument");
-    let input_file = fs::canonicalize(input_file_path)
-        .expect("Could not find and cannonicalize input file");
+    let input_file_path = argv.get(1).expect("missing file name argument");
+    let input_file =
+        fs::canonicalize(input_file_path).expect("Could not find and cannonicalize input file");
 
     println!("Using input file {:?}", input_file);
 
