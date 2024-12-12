@@ -1,0 +1,7 @@
+# Run code on sample input
+run:
+    DEBUG=1 cargo run files/sample.txt
+
+# Run code on input file
+run-input:
+    cargo run files/input.txt
