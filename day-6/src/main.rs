@@ -123,12 +123,10 @@ fn produce_board(input_data: &str) -> Board {
         .collect();
 }
 
-fn print_board(board: &Board, new_obstacle: (usize, usize), collision: (usize, usize)) {
+fn print_board(board: &Board, collision: (usize, usize)) {
     for row in board.iter().enumerate() {
         for tile in row.1.iter().enumerate() {
-            if (row.0, tile.0) == new_obstacle {
-                print!("O");
-            } else if (row.0, tile.0) == collision {
+            if (row.0, tile.0) == collision {
                 print!("X");
             } else {
                 print!("{}", tile.1.to_char());
@@ -170,34 +168,10 @@ fn get_tile(board: &Board, position: &(i32, i32)) -> Option<Tile> {
 
 fn part_one(input_data: &str) -> Result<u64, &str> {
     let mut board: Board = produce_board(input_data);
-    let mut guard_position: (i32, i32) = guard_start(&board);
-    let mut guard: Tile = get_tile(&board, &guard_position).expect("Guard could not be fetched");
-    if let Tile::Guard(direction) = guard {
-        board[guard_position.0 as usize][guard_position.1 as usize] = Tile::Visited(DirectionLog::from_direction(&direction));
-    }
+    let guard_position: (i32, i32) = guard_start(&board);
+    let guard: Tile = get_tile(&board, &guard_position).expect("Guard could not be fetched");
 
-    while let Some(_) = get_tile(&board, &guard_position) {
-        if let Tile::Guard(mut direction) = guard {
-            let target_position: (i32, i32) = (guard_position.0 + direction.0, guard_position.1 + direction.1);
-            match get_tile(&board, &target_position) {
-                Some(tile) => match tile {
-                    Tile::Obstacle => {
-                        direction.change_direction();
-
-                        guard = Tile::Guard(direction);
-                    },
-                    _ => {
-                        let coordinates = to_valid_coordinates(&target_position).unwrap();
-                        if let Tile::Guard(_) = guard {
-                            board[coordinates.0][coordinates.1] = Tile::Visited(DirectionLog::from_direction(&direction));
-                        }
-                        guard_position = target_position;
-                    }
-                },
-                None => guard_position = target_position,
-            };
-        }
-    }
+    board = run_simulation(board, false, guard, guard_position).expect_err("found infinite loop in part one board");
 
     return Ok(board.iter().map(|row| row.iter().filter(|x| match *x {
         Tile::Visited(_) => true,
@@ -218,90 +192,59 @@ fn part_one(input_data: &str) -> Result<u64, &str> {
 // The check needs to accound for if an obstacle can be placed (ie if the obstacle location would
 // be on the board if placed)
 //
-fn part_two(input_data: &str, debug: bool) -> Result<u64, &str>{
-    let mut board: Board = produce_board(input_data);
-
-    let original_guard_position: (i32, i32) = guard_start(&board);
-    let original_guard: Tile = get_tile(&board, &original_guard_position).expect("Guard could not be fetched");
-
-    let mut guard_position: (i32, i32) = original_guard_position.clone();
-    let mut guard: Tile = original_guard.clone();
-
-    if let Tile::Guard(direction) = guard {
-        board[guard_position.0 as usize][guard_position.1 as usize] = Tile::Visited(DirectionLog::from_direction(&direction));
-    }
-
-    while let Some(curr_tile) = get_tile(&board, &guard_position) {
-        if let Tile::Guard(mut direction) = guard {
-            let target_position: (i32, i32) = (guard_position.0 + direction.0, guard_position.1 + direction.1);
-            match get_tile(&board, &target_position) {
-                Some(tile) => match tile {
-                    Tile::Obstacle => {
-                        direction.change_direction();
-
-                        guard = Tile::Guard(direction);
-
-                        if let Tile::Visited(curr_direction) = curr_tile {
-                            board[guard_position.0 as usize][guard_position.1 as usize] = Tile::Visited(curr_direction.or(&direction));
+fn run_simulation(mut board: Board, debug: bool, mut simulated_guard: Tile, start: (i32, i32)) -> Result<Board, Board>{
+    let mut simulated_guard_position = start;
+    while let Some(adjacent_tile) = get_tile(&board, &simulated_guard_position) {
+        if let Tile::Guard(simulated_guard_direction) = simulated_guard {
+            match adjacent_tile {
+                Tile::Visited(adjacent_tile_direction) => {
+                    if adjacent_tile_direction.in_log(&simulated_guard_direction) {
+                        if debug {
+                            println!("Loop found");
+                            print_board(&board, to_valid_coordinates(&simulated_guard_position).unwrap());
                         }
-                    },
-                    tile => {
-                        let coordinates = to_valid_coordinates(&target_position).unwrap();
-                        if let Tile::Visited(target_tile_direction) = tile {
-                            board[coordinates.0][coordinates.1] = Tile::Visited(target_tile_direction.or(&direction));
-                        } else {
-                            board[coordinates.0][coordinates.1] = Tile::Visited(DirectionLog::from_direction(&direction));
-                        }
-                        guard_position = target_position;
+                        return Ok(board);
                     }
+    
+                    board[simulated_guard_position.0 as usize][simulated_guard_position.1 as usize] = Tile::Visited(adjacent_tile_direction.or(&simulated_guard_direction));
+                    simulated_guard_position = (simulated_guard_position.0 + simulated_guard_direction.0, simulated_guard_position.1 + simulated_guard_direction.1);
                 },
-                None => guard_position = target_position,
+                Tile::Obstacle => {
+                    simulated_guard_position = (simulated_guard_position.0 - simulated_guard_direction.0, simulated_guard_position.1 - simulated_guard_direction.1);
+                    simulated_guard = Tile::Guard(simulated_guard_direction.next_direction())
+                }
+                _ => {
+                    board[simulated_guard_position.0 as usize][simulated_guard_position.1 as usize] = Tile::Visited(DirectionLog::from_direction(&simulated_guard_direction));
+                    simulated_guard_position = (simulated_guard_position.0 + simulated_guard_direction.0, simulated_guard_position.1 + simulated_guard_direction.1);
+                },
             };
         }
     }
+    return Err(board);
+}
+
+fn part_two(input_data: &str, debug: bool) -> Result<u64, &str>{
+    let mut board: Board = produce_board(input_data);
+    let original_guard_position: (i32, i32) = guard_start(&board);
+    let original_guard: Tile = get_tile(&board, &original_guard_position).expect("Guard could not be fetched");
+    let mut guard_position: (i32, i32) = original_guard_position.clone();
+    let mut guard: Tile = original_guard.clone();
 
     let mut obstacles = HashSet::new();
-    guard_position = original_guard_position;
-    guard = original_guard.clone();
     while let Some(_) = get_tile(&board, &guard_position) {
         if let Tile::Guard(mut direction) = guard {
             let target_position: (i32, i32) = (guard_position.0 + direction.0, guard_position.1 + direction.1);
             match get_tile(&board, &target_position) {
                 Some(tile) => {
                     let coordinates = to_valid_coordinates(&target_position).unwrap();
-                    let mut simulated_guard = original_guard.clone();
-                    let mut simulated_guard_position = original_guard_position;
                     let mut simulation_board: Board = produce_board(input_data);
                     simulation_board[coordinates.0][coordinates.1] = Tile::Obstacle;
-
-                    // TODO: dedup logic
-                    while let Some(adjacent_tile) = get_tile(&simulation_board, &simulated_guard_position) {
-                        if let Tile::Guard(simulated_guard_direction) = simulated_guard {
-                            match adjacent_tile {
-                                Tile::Visited(adjacent_tile_direction) => {
-                                    if adjacent_tile_direction.in_log(&simulated_guard_direction) {
-                                        if debug {
-                                            println!("Obstacle placed in {:?} on {:?} == {:?} at {:?}", target_position, adjacent_tile_direction, simulated_guard_direction, simulated_guard_position);
-                                            print_board(&simulation_board, coordinates, to_valid_coordinates(&simulated_guard_position).unwrap());
-                                        }
-                                        obstacles.insert(coordinates);
-                                        break;
-                                    }
-
-                                    simulation_board[simulated_guard_position.0 as usize][simulated_guard_position.1 as usize] = Tile::Visited(adjacent_tile_direction.or(&simulated_guard_direction));
-                                    simulated_guard_position = (simulated_guard_position.0 + simulated_guard_direction.0, simulated_guard_position.1 + simulated_guard_direction.1);
-                                },
-                                Tile::Obstacle => {
-                                    simulated_guard_position = (simulated_guard_position.0 - simulated_guard_direction.0, simulated_guard_position.1 - simulated_guard_direction.1);
-                                    simulated_guard = Tile::Guard(simulated_guard_direction.next_direction())
-                                }
-                                _ => {
-                                    simulation_board[simulated_guard_position.0 as usize][simulated_guard_position.1 as usize] = Tile::Visited(DirectionLog::from_direction(&simulated_guard_direction));
-                                    simulated_guard_position = (simulated_guard_position.0 + simulated_guard_direction.0, simulated_guard_position.1 + simulated_guard_direction.1);
-                                },
-                            };
+                    match run_simulation(simulation_board, debug, original_guard.clone(), original_guard_position.clone()) {
+                        Ok(_) => {
+                            obstacles.insert(coordinates);
                         }
-                    }
+                        Err(_) => {},
+                    };
 
                     match tile {
                         Tile::Obstacle => {
