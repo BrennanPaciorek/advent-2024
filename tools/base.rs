@@ -5,7 +5,7 @@ fn part_one(input_data: &str) -> Result<u64, &str> {
     return Err("todo");
 }
 
-fn part_two(input_data: &str) -> Result<u64, &str>{
+fn part_two(input_data: &str) -> Result<u64, &str> {
     return Err("todo");
 }
 
@@ -19,10 +19,9 @@ fn print_result(prefix: &str, result: Result<u64, &str>) {
 fn main() {
     let argv: Vec<String> = args().collect();
 
-    let input_file_path = argv.get(1)
-        .expect("missing file name argument");
-    let input_file = fs::canonicalize(input_file_path)
-        .expect("Could not find and cannonicalize input file");
+    let input_file_path = argv.get(1).expect("missing file name argument");
+    let input_file =
+        fs::canonicalize(input_file_path).expect("Could not find and cannonicalize input file");
 
     println!("Using input file {:?}", input_file);
 

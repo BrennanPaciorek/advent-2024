@@ -5,3 +5,6 @@ run:
 # Run code on input file
 run-input:
     cargo run files/input.txt
+
+fmt:
+    rustfmt src/main.rs
